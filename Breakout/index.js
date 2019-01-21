@@ -27,6 +27,10 @@ let brickPadding = 10;
 let brickOffsetTop = 30;
 let brickOffsetLeft = 30;
 
+//score
+let score = 0;
+let lives = 3;
+
 let bricks = [];
 for (let i = 0; i < brickColumnCount; i++) {
 	bricks[i] = [];
@@ -38,6 +42,7 @@ for (let i = 0; i < brickColumnCount; i++) {
 //event listener for control
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
+document.addEventListener("mousemove", mouseMoveHandler, false);
 
 function keyDownHandler(event){
 	if(event.keyCode == 39){
@@ -53,6 +58,12 @@ function keyUpHandler(event){
 		leftPressed = false;
 	}
 }
+function mouseMoveHandler(event){
+	let relativeX = event.clientX - canvas.offsetLeft;
+	if(relativeX > 0 && relativeX < canvas.width){
+		paddleX = relativeX - paddleWidth/2;
+	}
+}
 
 //collision detection
 function collisionDetection(){
@@ -63,6 +74,11 @@ function collisionDetection(){
 				if(x > b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight){
 					dy = -dy;
 					b.status = 0;
+					score++;
+					if(score == brickRowCount*brickColumnCount){
+						console.log("YOU WIN, CONGRATULATIONS!");
+						document.location.reload();
+					}
 				}
 			}
 		}
@@ -103,7 +119,18 @@ function drawBricks(){
 		}
 	}
 }
-
+//draw score
+function drawScore(){
+	ctx.font = "16px Arial";
+	ctx.fillStyle = "#0095DD";
+	ctx.fillText("Score: "+score, 8, 20);
+}
+//draw lives
+function drawLives(){
+	ctx.font = "16px Arial";
+	ctx.fillStyle = "#0095DD";
+	ctx.fillText("Lives: "+lives, canvas.width-65, 20);
+}
 
 
 function draw(){
@@ -111,6 +138,8 @@ function draw(){
 	drawBricks();
 	drawBall();
 	drawPaddle();
+	drawScore();
+	drawLives();
 	collisionDetection();
 
 	if(x + dx > canvas.width - ballRadius || x + dx < ballRadius){
@@ -122,8 +151,17 @@ function draw(){
 		if(x > paddleX && x < paddleX + paddleWidth){
 			dy = -dy;
 		}else{
-			console.log("Game Over");
-			document.location.reload();
+			lives--;
+			if(!lives){
+				console.log("GAME OVER!");
+				document.location.reload();
+			}else{
+				x = canvas.width / 2;
+				y = canvas.height - 30;
+				dx = 3;
+				dy = -3;
+				paddleX = (canvas.width - paddleWidth)/2;
+			}
 		}
 	}
 
@@ -136,6 +174,8 @@ function draw(){
 
 	x += dx;
 	y += dy;
+
+	requestAnimationFrame(draw);
 }
 
-setInterval(draw, 10);
+draw();
